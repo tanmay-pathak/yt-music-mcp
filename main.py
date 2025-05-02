@@ -1,4 +1,3 @@
-from ytmusicapi import YTMusic
 from typing import List, Dict
 from fastmcp import FastMCP
 from ytmusic_service import YTMusicService
@@ -74,3 +73,7 @@ def remove_songs_from_playlist(
     return ytmusic_service.remove_songs_from_playlist(
         playlist_id_or_title=playlist_id_or_title, songs=songs
     )
+
+
+if __name__ == "__main__":
+    mcp.run()

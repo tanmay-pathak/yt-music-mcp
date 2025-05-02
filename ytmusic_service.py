@@ -1,5 +1,4 @@
-from ytmusicapi import YTMusic
-from typing import List, Tuple, Dict
+from typing import List, Dict
 from auth import load_oauth_credentials, authenticate_ytmusic
 from playlist import get_or_create_playlist, search_songs, add_songs_to_playlist
 
