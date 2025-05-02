@@ -1,11 +1,10 @@
 from ytmusicapi import YTMusic
-import json
 from typing import List, Dict
 from fastmcp import FastMCP
-from auth import load_oauth_credentials, authenticate_ytmusic
-from playlist import get_or_create_playlist, search_songs, add_songs_to_playlist
+from ytmusic_service import YTMusicService
 
 mcp = FastMCP("YouTube Music Playlist Creator 🎵")
+ytmusic_service = YTMusicService()
 
 
 @mcp.tool()
@@ -25,29 +24,53 @@ def add_songs_to_yt_playlist(
     Returns:
         A dictionary containing the playlist ID, added video IDs, and status
     """
-    # Configuration
-    CLIENT_SECRETS_FILE = "yt_client_secrets.json"
-    OAUTH_FILE = "oauth.json"
+    return ytmusic_service.add_songs_to_playlist(
+        songs=songs,
+        playlist_title=playlist_title,
+        playlist_description=playlist_description,
+    )
 
-    # Authentication
-    oauth_credentials = load_oauth_credentials(CLIENT_SECRETS_FILE)
-    ytmusic = authenticate_ytmusic(OAUTH_FILE, oauth_credentials)
 
-    # Get or create playlist
-    playlist_id = get_or_create_playlist(ytmusic, playlist_title, playlist_description)
+@mcp.tool()
+def get_user_playlists() -> List[Dict[str, str]]:
+    """
+    Get all playlists in the user's YouTube Music library.
 
-    # Convert the list of song dictionaries to (title, artist) tuples
-    song_tuples = [(song["title"], song["artist"]) for song in songs]
+    Returns:
+        A list of playlist dictionaries with id, title, and track count
+    """
+    return ytmusic_service.get_playlists()
 
-    # Search for songs
-    video_ids = search_songs(ytmusic, song_tuples)
 
-    # Add songs to playlist
-    status = add_songs_to_playlist(ytmusic, playlist_id, video_ids, playlist_title)
+@mcp.tool()
+def get_playlist_songs(playlist_id_or_title: str) -> List[Dict[str, str]]:
+    """
+    Get all songs in a YouTube Music playlist.
 
-    return {
-        "playlist_id": playlist_id,
-        "video_ids": video_ids,
-        "status": status,
-        "song_count": len(video_ids),
-    }
+    Args:
+        playlist_id_or_title: The ID or title of the playlist
+
+    Returns:
+        A list of song dictionaries with title, artist, album, videoId, etc.
+    """
+    return ytmusic_service.get_playlist_songs(playlist_id_or_title=playlist_id_or_title)
+
+
+@mcp.tool()
+def remove_songs_from_playlist(
+    playlist_id_or_title: str, songs: List[Dict[str, str]]
+) -> Dict[str, any]:
+    """
+    Remove songs from a YouTube Music playlist.
+
+    Args:
+        playlist_id_or_title: The ID or title of the playlist
+        songs: A list of dictionaries, each must have 'videoId' and 'setVideoId' keys
+              (these come from the get_playlist_songs tool)
+
+    Returns:
+        A dictionary with status information and the number of removed songs
+    """
+    return ytmusic_service.remove_songs_from_playlist(
+        playlist_id_or_title=playlist_id_or_title, songs=songs
+    )
