@@ -1,6 +1,6 @@
 from typing import List, Dict
 from auth import load_oauth_credentials, authenticate_ytmusic
-from playlist import get_or_create_playlist, search_songs, add_songs_to_playlist
+from playlist import create_playlist, search_songs, add_songs_to_playlist
 
 
 class YTMusicService:
@@ -20,19 +20,40 @@ class YTMusicService:
         self.ytmusic = authenticate_ytmusic(self.oauth_file, oauth_credentials)
         return self.ytmusic
 
+    def create_playlist(self, title: str, description: str) -> Dict[str, str]:
+        """
+        Create a new YouTube Music playlist.
+
+        Args:
+            title: The title of the playlist
+            description: The description of the playlist
+
+        Returns:
+            A dictionary with the playlist ID and title
+        """
+        # Make sure we're authenticated
+        if self.ytmusic is None:
+            self.authenticate()
+
+        # Create the playlist
+        playlist_id = create_playlist(self.ytmusic, title, description)
+
+        return {
+            "playlist_id": playlist_id,
+            "title": title,
+        }
+
     def add_songs_to_playlist(
         self,
         songs: List[Dict[str, str]],
-        playlist_title: str = "AI Playlist",
-        playlist_description: str = "Songs added via yt-music-mcp.",
+        playlist_id: str,
     ) -> Dict[str, any]:
         """
         Add a list of songs to a YouTube Music playlist.
 
         Args:
             songs: A list of dictionaries, each with 'title' and 'artist' keys
-            playlist_title: The title of the playlist to add songs to (creates if not exists)
-            playlist_description: The description for the playlist if it needs to be created
+            playlist_id: The ID of the playlist to add songs to
 
         Returns:
             A dictionary containing the playlist ID, added video IDs, and status
@@ -40,11 +61,6 @@ class YTMusicService:
         # Make sure we're authenticated
         if self.ytmusic is None:
             self.authenticate()
-
-        # Get or create playlist
-        playlist_id = get_or_create_playlist(
-            self.ytmusic, playlist_title, playlist_description
-        )
 
         # Convert the list of song dictionaries to (title, artist) tuples
         song_tuples = [(song["title"], song["artist"]) for song in songs]
@@ -54,7 +70,7 @@ class YTMusicService:
 
         # Add songs to playlist
         status = add_songs_to_playlist(
-            self.ytmusic, playlist_id, video_ids, playlist_title
+            self.ytmusic, playlist_id, video_ids, playlist_id
         )
 
         return {
@@ -85,12 +101,12 @@ class YTMusicService:
             for pl in playlists
         ]
 
-    def get_playlist_songs(self, playlist_id_or_title: str) -> List[Dict[str, str]]:
+    def get_playlist_songs(self, playlist_id: str) -> List[Dict[str, str]]:
         """
         Get all songs in a playlist.
 
         Args:
-            playlist_id_or_title: The ID or title of the playlist
+            playlist_id: The ID of the playlist
 
         Returns:
             A list of song dictionaries with title, artist, etc.
@@ -98,18 +114,6 @@ class YTMusicService:
         # Make sure we're authenticated
         if self.ytmusic is None:
             self.authenticate()
-
-        # If a title was provided instead of an ID, find the ID
-        if not playlist_id_or_title.startswith("VL"):
-            playlists = self.get_playlists()
-            playlist_id = next(
-                (pl["id"] for pl in playlists if pl["title"] == playlist_id_or_title),
-                None,
-            )
-            if not playlist_id:
-                return []
-        else:
-            playlist_id = playlist_id_or_title
 
         # Get the songs in the playlist
         playlist = self.ytmusic.get_playlist(playlist_id, limit=1000)
@@ -140,13 +144,13 @@ class YTMusicService:
         return songs
 
     def remove_songs_from_playlist(
-        self, playlist_id_or_title: str, songs: List[Dict[str, str]]
+        self, playlist_id: str, songs: List[Dict[str, str]]
     ) -> Dict[str, any]:
         """
         Remove songs from a playlist.
 
         Args:
-            playlist_id_or_title: The ID or title of the playlist
+            playlist_id: The ID of the playlist
             songs: A list of dictionaries, each with 'videoId' and 'setVideoId' keys
 
         Returns:
@@ -155,18 +159,6 @@ class YTMusicService:
         # Make sure we're authenticated
         if self.ytmusic is None:
             self.authenticate()
-
-        # If a title was provided instead of an ID, find the ID
-        if not playlist_id_or_title.startswith("VL"):
-            playlists = self.get_playlists()
-            playlist_id = next(
-                (pl["id"] for pl in playlists if pl["title"] == playlist_id_or_title),
-                None,
-            )
-            if not playlist_id:
-                return {"status": "Playlist not found", "removed_count": 0}
-        else:
-            playlist_id = playlist_id_or_title
 
         # Prepare the video IDs to remove
         # YTMusic API requires both videoId and setVideoId to remove a song

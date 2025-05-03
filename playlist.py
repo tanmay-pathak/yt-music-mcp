@@ -2,20 +2,9 @@ from ytmusicapi import YTMusic
 from typing import List, Tuple
 
 
-def get_or_create_playlist(ytmusic: YTMusic, title: str, description: str) -> str:
-    """Get existing playlist ID or create a new one if it doesn't exist."""
-    playlist_id = next(
-        (
-            pl["playlistId"]
-            for pl in ytmusic.get_library_playlists()
-            if pl["title"] == title
-        ),
-        None,
-    )
-
-    if playlist_id is None:
-        playlist_id = ytmusic.create_playlist(title, description)
-
+def create_playlist(ytmusic: YTMusic, title: str, description: str) -> str:
+    """Create a new playlist and return its ID."""
+    playlist_id = ytmusic.create_playlist(title, description)
     return playlist_id
 
 
