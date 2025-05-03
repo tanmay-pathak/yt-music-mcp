@@ -40,7 +40,14 @@ def add_songs_to_yt_playlist(
         playlist_id: The ID of the playlist to add songs to
 
     Returns:
-        A dictionary containing the playlist ID, added video IDs, and status
+        A dictionary containing:
+          - playlist_id: The ID of the playlist
+          - added_count: Number of songs successfully added
+          - failed_count: Number of songs that failed to add
+          - not_found_count: Number of songs that couldn't be found
+          - not_found: List of songs that couldn't be found
+          - status: A human-readable status message
+          - success: Whether at least one song was added successfully
     """
     return ytmusic_service.add_songs_to_playlist(
         songs=songs,

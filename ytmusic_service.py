@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 from auth import load_oauth_credentials, authenticate_ytmusic
 from playlist import create_playlist, search_songs, add_songs_to_playlist
 
@@ -66,18 +66,19 @@ class YTMusicService:
         song_tuples = [(song["title"], song["artist"]) for song in songs]
 
         # Search for songs
-        video_ids = search_songs(self.ytmusic, song_tuples)
+        search_results = search_songs(self.ytmusic, song_tuples)
 
         # Add songs to playlist
-        status = add_songs_to_playlist(
-            self.ytmusic, playlist_id, video_ids
-        )
+        status = add_songs_to_playlist(self.ytmusic, playlist_id, search_results)
 
         return {
             "playlist_id": playlist_id,
-            "video_ids": video_ids,
-            "status": status,
-            "song_count": len(video_ids),
+            "added_count": status.get("added_count", 0),
+            "failed_count": status.get("failed_count", 0),
+            "not_found_count": status.get("not_found_count", 0),
+            "not_found": status.get("not_found", []),
+            "status": status.get("message", ""),
+            "success": status.get("success", False),
         }
 
     def get_playlists(self) -> List[Dict[str, str]]:
