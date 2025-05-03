@@ -18,4 +18,4 @@ For setup and running instructions, see the [FastMCP documentation](https://gith
 This app requires YouTube Music authentication files:
 
 - Create a `yt_client_secrets.json` file with your Google OAuth credentials
-- Generate an `oauth.json` token by following [ytmusicapi authentication instructions](https://ytmusicapi.readthedocs.io/en/latest/setup.html#oauth-setup)
+- Generate an `oauth.json` token by following [ytmusicapi authentication instructions](https://ytmusicapi.readthedocs.io/en/stable/setup/oauth.html)
