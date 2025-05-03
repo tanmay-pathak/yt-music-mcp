@@ -27,11 +27,19 @@ def search_songs(ytmusic: YTMusic, songs: List[Tuple[str, str]]) -> List[str]:
 
 
 def add_songs_to_playlist(
-    ytmusic: YTMusic, playlist_id: str, video_ids: List[str], playlist_title: str
+    ytmusic: YTMusic, playlist_id: str, video_ids: List[str]
 ) -> str:
     """Add songs to the specified playlist and return status message."""
     if not video_ids:
         return "No matches found, no songs were added to the playlist."
 
-    ytmusic.add_playlist_items(playlist_id, video_ids)
-    return f"Added {len(video_ids)} tracks to '{playlist_title}'."
+    status = ytmusic.add_playlist_items(playlist_id, video_ids)
+    
+    # Try to get the playlist title
+    try:
+        playlist_info = ytmusic.get_playlist(playlist_id, limit=1)
+        playlist_title = playlist_info.get("title", playlist_id)
+        return f"Added {len(video_ids)} tracks to '{playlist_title}'."
+    except:
+        # Fall back to just using the ID if we can't get the title
+        return f"Added {len(video_ids)} tracks to playlist with ID: {playlist_id}."

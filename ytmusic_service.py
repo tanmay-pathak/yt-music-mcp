@@ -70,7 +70,7 @@ class YTMusicService:
 
         # Add songs to playlist
         status = add_songs_to_playlist(
-            self.ytmusic, playlist_id, video_ids, playlist_id
+            self.ytmusic, playlist_id, video_ids
         )
 
         return {
